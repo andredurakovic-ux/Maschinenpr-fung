@@ -3,242 +3,622 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maschinenprüfung</title>
+    <title>Digitale Maschinenprüfung</title>
     <style>
-        * { box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        :root {
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-color: #1a202c;
+            --border-color: #e2e8f0;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --green: #10b981;
+            --green-hover: #059669;
+            --red: #ef4444;
+            --red-hover: #dc2626;
+            --gray: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
             padding: 15px;
-            background-color: #f4f6f9;
-            color: #1e293b;
         }
-        .container {
+
+        .app-container {
+            width: 100%;
             max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
+            background: var(--card-bg);
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
+
+        header {
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
         h1 {
-            font-size: 1.4rem;
-            margin-top: 0;
-            color: #0f172a;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 10px;
+            font-size: 1.5rem;
+            color: var(--text-color);
         }
-        .form-group { margin-bottom: 12px; }
-        label {
-            display: block;
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-bottom: 4px;
-            color: #475569;
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
         }
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 0.95rem;
+
+        .screen.active {
+            display: flex;
         }
-        .search-box { margin: 15px 0; }
-        .checklist-item {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
-        }
-        .checklist-item h3 {
-            margin: 0 0 8px 0;
-            font-size: 0.95rem;
-        }
-        .options { display: flex; gap: 10px; }
-        .options label { font-weight: normal; margin: 0; cursor: pointer; }
+
+        /* Buttons */
         .btn {
-            display: block;
-            width: 100%;
-            padding: 12px;
+            background-color: var(--primary);
+            color: white;
             border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn-green { background-color: var(--green); }
+        .btn-green:hover { background-color: var(--green-hover); }
+        .btn-red { background-color: var(--red); }
+        .btn-red:hover { background-color: var(--red-hover); }
+        .btn-secondary { background-color: #6b7280; }
+        .btn-secondary:hover { background-color: #4b5563; }
+        .btn-outline { background-color: transparent; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-outline:hover { background-color: #eff6ff; }
+
+        /* Formular Elemente */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        input, select, textarea {
+            padding: 12px;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 1rem;
-            font-weight: 600;
+            width: 100%;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Prüfungsbildschirm */
+        .info-card {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e2e8f0;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .check-item-card {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: #fff;
             margin-top: 10px;
-            cursor: pointer;
         }
-        .btn-primary { background: #2563eb; color: white; }
-        .btn-secondary { background: #475569; color: white; }
-        .btn-mail { background: #059669; color: white; }
-        .result {
-            margin-top: 15px;
-            padding: 15px;
-            border-radius: 6px;
+
+        .check-item-card h3 {
+            font-size: 1rem;
+            color: #718096;
+            margin-bottom: 10px;
+        }
+
+        .check-item-card p {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+            padding: 20px;
+            font-size: 1.3rem;
+        }
+
+        /* Liste vergangen */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .history-actions button {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: white;
             font-weight: bold;
-            display: none;
+            font-size: 0.85rem;
         }
-        .pass { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .fail { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        
+
+        .badge-ok { background-color: var(--green); }
+        .badge-nok { background-color: var(--red); }
+
+        .search-box {
+            margin-bottom: 10px;
+        }
+
+        /* Druck-Spezifisches CSS */
         @media print {
-            .btn, .search-box, input[type="text"], select, textarea { border: none; }
-            .btn, .search-box { display: none !important; }
+            body { background: white; padding: 0; }
+            .app-container { box-shadow: none; border: none; max-width: 100%; width: 100%; }
+            header, .btn, input, select, textarea, .progress-bar-container, .action-buttons, .search-box, .history-actions { display: none !important; }
+            .screen { display: block !important; }
+            #screen-final { display: block !important; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Digital Machine Inspection</h1>
+<div class="app-container">
+    <header>
+        <h1>🏭 Maschinenprüfung</h1>
+    </header>
 
-    <div class="form-group">
-        <label for="machine">Maschinen-Typ</label>
-        <select id="machine">
-            <option>Drehmaschine K40</option>
-            <option>Fräsmaschine F2</option>
-            <option>Standbohrmaschine B12</option>
-            <option>Sonderbau / Kundenmaschine</option>
-        </select>
+    <!-- 1. STARTSEITE -->
+    <div id="screen-home" class="screen active">
+        <button class="btn" onclick="goToScreen('screen-data')">＋ Neue Prüfung</button>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-history')">📋 Letzte Prüfungen / 🔎 Suchen</button>
     </div>
 
-    <div class="form-group">
-        <label for="serial">Seriennummer / SN</label>
-        <input type="text" id="serial" placeholder="z. B. SN-2026-8812">
+    <!-- 2. MASCHINENDATEN -->
+    <div id="screen-data" class="screen">
+        <h2>Maschinendaten erfassen</h2>
+        <div class="form-group">
+            <label for="machine-type">Maschinentyp</label>
+            <input type="text" id="machine-type" value="FER415S583A385" placeholder="z. B. FER415S583A385">
+        </div>
+        <div class="form-group">
+            <label for="serial-number">Seriennummer</label>
+            <input type="text" id="serial-number" value="FER00487" placeholder="z. B. FER00487">
+        </div>
+        <div class="form-group">
+            <label for="build-year">Baujahr</label>
+            <input type="number" id="build-year" value="2026">
+        </div>
+        <div class="form-group">
+            <label for="order-number">Auftragsnummer (optional)</label>
+            <input type="text" id="order-number" placeholder="Kann später ergänzt werden">
+        </div>
+        <button class="btn btn-green" onclick="startInspection()">Prüfung starten ▶</button>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-home')">Abbrechen</button>
     </div>
 
-    <div class="form-group">
-        <label for="inspector">Prüfer Name</label>
-        <input type="text" id="inspector" placeholder="Dein Name">
+    <!-- 3. PRÜFUNGSBILDSCHIRM -->
+    <div id="screen-inspection" class="screen">
+        <div class="info-card" id="inspection-info"></div>
+        
+        <div>
+            <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                <span>Fortschritt</span>
+                <span id="progress-text">0 / 18</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <div class="check-item-card">
+            <h3 id="check-step">Prüfpunkt 1 von 18</h3>
+            <p id="check-text">Lade Prüfpunkt...</p>
+        </div>
+
+        <!-- Bemerkungsfeld bei Rot -->
+        <div id="remark-container" class="form-group" style="display: none;">
+            <label for="remark-text" style="color: var(--red);">🔴 Mangel beschreiben:</label>
+            <textarea id="remark-text" placeholder="Beschreibung des Fehlers..."></textarea>
+            <button class="btn btn-red" onclick="confirmNOK()">Fehler speichern & Weiter</button>
+        </div>
+
+        <!-- Haupt-Aktionsbuttons -->
+        <div class="action-buttons" id="main-actions">
+            <button class="btn btn-green" onclick="handleCheck(true)">🟢 OK</button>
+            <button class="btn btn-red" onclick="showRemarkInput()">🔴 NICHT OK</button>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label for="specialState">Sonderzustand / Hinweise (z. B. "Verkauf ohne Motor")</label>
-        <textarea id="specialState" rows="2" placeholder="Besonderheiten bei dieser Abnahme..."></textarea>
+    <!-- 4. ENDKONTROLLE -->
+    <div id="screen-final" class="screen">
+        <h2>Endkontrolle & Abschluss</h2>
+        
+        <div id="final-result-banner" style="text-align: center; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; color: white;"></div>
+
+        <div class="form-group">
+            <label for="worker-name">👷 Mitarbeiter / Monteur</label>
+            <input type="text" id="worker-name" placeholder="Name des Monteurs">
+        </div>
+        <div class="form-group">
+            <label for="inspector-name">👤 Endkontrolle durchgeführt von</label>
+            <input type="text" id="inspector-name" placeholder="Name des Prüfers">
+        </div>
+        <div class="form-group">
+            <label for="inspection-date">📅 Datum</label>
+            <input type="date" id="inspection-date">
+        </div>
+
+        <!-- Export-Buttons -->
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn btn-outline" onclick="printReport()">🖨️ Drucken / PDF</button>
+            <button class="btn btn-outline" onclick="sendMail()">✉️ Mail senden</button>
+        </div>
+
+        <button class="btn btn-green" onclick="saveInspection()">Prüfung Speichern 💾</button>
     </div>
 
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="🔍 Prüfpunkt suchen..." onkeyup="filterList()">
-    </div>
-
-    <form id="inspectionForm">
-        <div id="dynamicItems"></div>
-        <button type="button" class="btn btn-primary" onclick="evaluateInspection()">Prüfung Auswerten</button>
-    </form>
-
-    <div id="resultBox" class="result">
-        <div id="resultText"></div>
-        <button type="button" class="btn btn-secondary" onclick="window.print()">🖨️ Protokoll Drucken / als PDF</button>
-        <button type="button" class="btn btn-mail" onclick="sendMail()">✉️ Ergebnis per E-Mail senden</button>
+    <!-- 5. HISTORIE & SUCHEN -->
+    <div id="screen-history" class="screen">
+        <h2>Vergangene Prüfungen</h2>
+        <input type="text" id="search-input" class="search-box" placeholder="🔎 Nach Seriennummer oder Typ suchen..." oninput="renderHistory()">
+        <div class="history-list" id="history-list"></div>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-home')" style="margin-top: 15px;">Zurück zum Hauptmenü</button>
     </div>
 </div>
 
 <script>
-    const checklistItems = [
-        "1. Not-Aus-Schalter auf Funktion prüfen",
-        "2. Schutzabdeckungen vorhanden und intakt",
-        "3. Sichtprüfung auf Öl- oder Flüssigkeitsverlust",
-        "4. Elektrische Leitungen unbeschädigt",
-        "5. Beleuchtung am Arbeitsplatz funktionsfähig",
-        "6. Sauberkeit des Arbeitsbereichs",
-        "7. Druckluftanschlüsse dicht",
-        "8. Füllstand Kühl-/Schmiermittel prüfen",
-        "9. Sicherheitsabstände eingehalten",
-        "10. Werkzeugaufnahme ohne Beschädigung",
-        "11. Geräuschentwicklung im Leerlauf (falls Motor verbaut)",
-        "12. Bremsen / Stopp-Funktion geprüft",
-        "13. Warnschilder gut lesbar",
-        "14. Absauganlage funktionsfähig",
-        "15. Hydraulikdruck im Normbereich",
-        "16. Mechanische Verriegelungen intakt",
-        "17. PSA vorhanden",
-        "18. Protokollbuch aktualisiert"
+    // 18 Prüfpunkte aus der Vorgabe
+    const checkItems = [
+        "Flanschlager (inkl. Madenschrauben) festgezogen.",
+        "Gleitlagerkopf angezogen.",
+        "Öl eingesetzt.",
+        "Motorkiste festgezogen.",
+        "Motor festgezogen.",
+        "Keilriemen und Riemenscheiben festgezogen.",
+        "Schmierleitung festgezogen.",
+        "Ringschrauben (inkl. Kontermuttern) festgezogen.",
+        "Flügel mit Kiloschlüssel festgezogen.",
+        "Gummis montiert.",
+        "Schaltkasten getestet.",
+        "Maschinen-Testlauf durchgeführt.",
+        "Haube festgezogen.",
+        "Spanner verpackt.",
+        "Deckelsatz-System (inkl. Schrauben) verpackt.",
+        "Typenschild geklebt.",
+        "Sauberkeit geprüft.",
+        "Alle erforderlichen Aufkleber vorhanden und korrekt angebracht?"
     ];
 
-    const dynamicContainer = document.getElementById('dynamicItems');
+    // Zustand der aktuellen Prüfung
+    let currentData = {};
+    let currentStep = 0;
+    let inspectionResults = [];
 
-    checklistItems.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'checklist-item';
-        div.setAttribute('data-text', item.toLowerCase());
-        div.innerHTML = `
-            <h3>${item}</h3>
-            <div class="options">
-                <label><input type="radio" name="item_${index}" value="pass" required> i.O.</label>
-                <label><input type="radio" name="item_${index}" value="fail"> n.i.O.</label>
-                <label><input type="radio" name="item_${index}" value="entfaellt"> Entfällt / Nicht verbaut</label>
-            </div>
-        `;
-        dynamicContainer.appendChild(div);
-    });
-
-    function filterList() {
-        const query = document.getElementById('searchInput').value.toLowerCase();
-        const items = document.querySelectorAll('.checklist-item');
-        items.forEach(item => {
-            const text = item.getAttribute('data-text');
-            item.style.display = text.includes(query) ? 'block' : 'none';
-        });
+    // Screen-Navigation
+    function goToScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        if(screenId === 'screen-history') renderHistory();
     }
 
-    let lastResult = {};
+    // Prüfung starten
+    function startInspection() {
+        currentData = {
+            type: document.getElementById('machine-type').value.trim(),
+            serial: document.getElementById('serial-number').value.trim(),
+            year: document.getElementById('build-year').value,
+            order: document.getElementById('order-number').value.trim()
+        };
 
-    function evaluateInspection() {
-        const form = document.getElementById('inspectionForm');
-        if(!form.checkValidity()) {
-            alert('Bitte alle Punkte bewerten!');
+        if(!currentData.type) {
+            alert("Bitte gib einen Maschinentyp ein.");
             return;
         }
 
-        const formData = new FormData(form);
-        let hasFail = false;
-
-        for (let value of formData.values()) {
-            if (value === 'fail') {
-                hasFail = true;
-                break;
-            }
+        if(!currentData.serial) {
+            alert("Bitte gib eine Seriennummer ein.");
+            return;
         }
 
-        const resultBox = document.getElementById('resultBox');
-        const resultText = document.getElementById('resultText');
-        resultBox.style.display = 'block';
+        currentStep = 0;
+        inspectionResults = [];
+        
+        // Info oben anzeigen
+        document.getElementById('inspection-info').innerHTML = `
+            <b>Typ:</b> ${currentData.type} | <b>SN:</b> ${currentData.serial} | <b>Jahr:</b> ${currentData.year}
+            ${currentData.order ? `<br><b>Auftrag:</b> ${currentData.order}` : ''}
+        `;
 
-        const status = hasFail ? 'FAIL' : 'PASS';
-        if(hasFail) {
-            resultBox.className = 'result fail';
-            resultText.innerHTML = '❌ Mängel festgestellt! Maschine NICHT freigegeben.';
+        updateStepView();
+        goToScreen('screen-inspection');
+    }
+
+    // Prüfschritt anzeigen
+    function updateStepView() {
+        const total = checkItems.length;
+        document.getElementById('progress-text').innerText = `${currentStep} / ${total}`;
+        document.getElementById('progress-bar').style.width = `${(currentStep / total) * 100}%`;
+
+        if (currentStep < total) {
+            document.getElementById('check-step').innerText = `Prüfpunkt ${currentStep + 1} von ${total}`;
+            document.getElementById('check-text').innerText = checkItems[currentStep];
+            
+            // Ansicht zurücksetzen
+            document.getElementById('remark-container').style.display = 'none';
+            document.getElementById('main-actions').style.display = 'flex';
+            document.getElementById('remark-text').value = '';
         } else {
-            resultBox.className = 'result pass';
-            resultText.innerHTML = '✅ Prüfung bestanden! Maschine freigegeben.';
+            // Prüfung fertig
+            finishInspection();
+        }
+    }
+
+    // OK / NOK Buttons
+    function handleCheck(isOk) {
+        if (isOk) {
+            inspectionResults.push({
+                item: checkItems[currentStep],
+                status: 'OK',
+                remark: ''
+            });
+            currentStep++;
+            updateStepView();
+        }
+    }
+
+    function showRemarkInput() {
+        document.getElementById('main-actions').style.display = 'none';
+        document.getElementById('remark-container').style.display = 'flex';
+    }
+
+    function confirmNOK() {
+        const remark = document.getElementById('remark-text').value.trim();
+        if (!remark) {
+            alert("Bitte gib eine kurze Bemerkung zum Mangel ein.");
+            return;
+        }
+        
+        inspectionResults.push({
+            item: checkItems[currentStep],
+            status: 'NOK',
+            remark: remark
+        });
+        
+        currentStep++;
+        updateStepView();
+    }
+
+    // Endkontrolle vorbereiten
+    function finishInspection() {
+        const hasErrors = inspectionResults.some(r => r.status === 'NOK');
+        const banner = document.getElementById('final-result-banner');
+
+        if (hasErrors) {
+            banner.innerText = "🔴 MASCHINE NICHT FREIGEGEBEN";
+            banner.style.backgroundColor = "var(--red)";
+            currentData.status = "NICHT FREIGEGEBEN";
+        } else {
+            banner.innerText = "🟢 MASCHINE FREIGEGEBEN";
+            banner.style.backgroundColor = "var(--green)";
+            currentData.status = "FREIGEGEBEN";
         }
 
-        lastResult = {
-            machine: document.getElementById('machine').value,
-            serial: document.getElementById('serial').value || 'Keine SN',
-            inspector: document.getElementById('inspector').value || 'Unbekannt',
-            special: document.getElementById('specialState').value || 'Keine',
-            status: status,
-            date: new Date().toLocaleString('de-DE')
+        // Datum auf heute setzen
+        document.getElementById('inspection-date').value = new Date().toISOString().split('T')[0];
+        goToScreen('screen-final');
+    }
+
+    // In LocalStorage Speichern
+    function saveInspection() {
+        const worker = document.getElementById('worker-name').value.trim();
+        const inspector = document.getElementById('inspector-name').value.trim();
+        const date = document.getElementById('inspection-date').value;
+
+        if(!worker || !inspector) {
+            alert("Bitte trage den Monteur und den Prüfer ein.");
+            return;
+        }
+
+        const fullRecord = {
+            id: Date.now(),
+            ...currentData,
+            worker,
+            inspector,
+            date,
+            results: inspectionResults
         };
+
+        // Speichern
+        const saved = JSON.parse(localStorage.getItem('machine_inspections') || '[]');
+        saved.push(fullRecord);
+        localStorage.setItem('machine_inspections', JSON.stringify(saved));
+
+        alert("Prüfung erfolgreich gespeichert!");
+        
+        // Reset & zurück
+        document.getElementById('worker-name').value = '';
+        document.getElementById('inspector-name').value = '';
+        goToScreen('screen-home');
+    }
+
+    // Historie rendern
+    function renderHistory() {
+        const listContainer = document.getElementById('history-list');
+        const search = document.getElementById('search-input').value.toLowerCase();
+        const saved = JSON.parse(localStorage.getItem('machine_inspections') || '[]');
+
+        listContainer.innerHTML = '';
+
+        const filtered = saved.filter(item => 
+            item.serial.toLowerCase().includes(search) || 
+            item.type.toLowerCase().includes(search)
+        ).reverse(); // Neueste zuerst
+
+        if (filtered.length === 0) {
+            listContainer.innerHTML = '<p style="text-align:center; color:#718096; padding: 20px;">Keine Prüfungen gefunden.</p>';
+            return;
+        }
+
+        filtered.forEach(item => {
+            const isOk = item.status === "FREIGEGEBEN";
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <div class="history-item-header">
+                    <div>
+                        <strong>${item.type}</strong><br>
+                        <small>SN: ${item.serial} | Datum: ${item.date}</small>
+                    </div>
+                    <span class="badge ${isOk ? 'badge-ok' : 'badge-nok'}">
+                        ${isOk ? '🟢 FREIGEGEBEN' : '🔴 NICHT FREIGEGEBEN'}
+                    </span>
+                </div>
+                <div class="history-actions">
+                    <button class="btn btn-outline" onclick="sendMailForRecord(${item.id})">✉️ Mail</button>
+                    <button class="btn btn-outline" onclick="printRecord(${item.id})">🖨️ Drucken</button>
+                </div>
+            `;
+            listContainer.appendChild(div);
+        });
+    }
+
+    // DRUCKEN & MAIL FUNKTIONEN
+    function printReport() {
+        window.print();
     }
 
     function sendMail() {
-        const subject = encodeURIComponent(`Abnahme-Protokoll: ${lastResult.machine} - SN: ${lastResult.serial}`);
-        const body = encodeURIComponent(
-            `ABNAHME-PROTOKOLL\n` +
-            `---------------------------\n` +
-            `Maschine: ${lastResult.machine}\n` +
-            `Seriennummer: ${lastResult.serial}\n` +
-            `Prüfer: ${lastResult.inspector}\n` +
-            `Datum: ${lastResult.date}\n` +
-            `Sonderzustand / Hinweise: ${lastResult.special}\n` +
-            `---------------------------\n` +
-            `GESAMTERGEBNIS: ${lastResult.status === 'PASS' ? 'FREIGEGEBEN (OK)' : 'NICHT FREIGEGEBEN (Mängel)'}\n`
-        );
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        const worker = document.getElementById('worker-name').value.trim() || 'Unbekannt';
+        const inspector = document.getElementById('inspector-name').value.trim() || 'Unbekannt';
+        const date = document.getElementById('inspection-date').value || new Date().toISOString().split('T')[0];
+
+        const subject = encodeURIComponent(`Maschinenprüfung: ${currentData.type} - SN: ${currentData.serial} [${currentData.status}]`);
+        
+        let bodyText = `PRÜFPROTOKOLL MASCHINENPRÜFUNG\n`;
+        bodyText += `-----------------------------------\n`;
+        bodyText += `Maschinentyp: ${currentData.type}\n`;
+        bodyText += `Seriennummer: ${currentData.serial}\n`;
+        bodyText += `Baujahr: ${currentData.year}\n`;
+        bodyText += `Auftragsnummer: ${currentData.order || '-'}\n`;
+        bodyText += `Datum: ${date}\n`;
+        bodyText += `Monteur: ${worker}\n`;
+        bodyText += `Endkontrolle: ${inspector}\n`;
+        bodyText += `Ergebnis: ${currentData.status}\n\n`;
+        bodyText += `PRÜFPUNKTE:\n`;
+
+        inspectionResults.forEach((res, i) => {
+            bodyText += `${i+1}. ${res.item}: ${res.status}${res.remark ? ' (' + res.remark + ')' : ''}\n`;
+        });
+
+        window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+    }
+
+    function sendMailForRecord(id) {
+        const saved = JSON.parse(localStorage.getItem('machine_inspections') || '[]');
+        const record = saved.find(r => r.id === id);
+        if(!record) return;
+
+        const subject = encodeURIComponent(`Maschinenprüfung: ${record.type} - SN: ${record.serial} [${record.status}]`);
+        let bodyText = `PRÜFPROTOKOLL MASCHINENPRÜFUNG\n`;
+        bodyText += `-----------------------------------\n`;
+        bodyText += `Maschinentyp: ${record.type}\n`;
+        bodyText += `Seriennummer: ${record.serial}\n`;
+        bodyText += `Baujahr: ${record.year}\n`;
+        bodyText += `Auftragsnummer: ${record.order || '-'}\n`;
+        bodyText += `Datum: ${record.date}\n`;
+        bodyText += `Monteur: ${record.worker}\n`;
+        bodyText += `Endkontrolle: ${record.inspector}\n`;
+        bodyText += `Ergebnis: ${record.status}\n\n`;
+        bodyText += `PRÜFPUNKTE:\n`;
+
+        if(record.results) {
+            record.results.forEach((res, i) => {
+                bodyText += `${i+1}. ${res.item}: ${res.status}${res.remark ? ' (' + res.remark + ')' : ''}\n`;
+            });
+        }
+
+        window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+    }
+
+    function printRecord(id) {
+        alert("Bitte nutze die Drucken-Option direkt nach der Freigabe oder erstelle einen Mail-Export.");
     }
 </script>
-
 </body>
 </html>
