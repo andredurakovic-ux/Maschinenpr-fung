@@ -532,3 +532,249 @@
 </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maschinenprüfung</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #f4f6f9;
+            color: #1e293b;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 1.4rem;
+            margin-top: 0;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        .form-group { margin-bottom: 12px; }
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: #475569;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        .search-box { margin: 15px 0; }
+        .checklist-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .checklist-item h3 {
+            margin: 0 0 8px 0;
+            font-size: 0.95rem;
+        }
+        .options { display: flex; gap: 10px; }
+        .options label { font-weight: normal; margin: 0; cursor: pointer; }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-secondary { background: #475569; color: white; }
+        .btn-mail { background: #059669; color: white; }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            display: none;
+        }
+        .pass { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .fail { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        
+        /* Druck-Styling: Versteckt Buttons beim Drucken */
+        @media print {
+            .btn, .search-box, input[type="text"], select, textarea { border: none; }
+            .btn, .search-box { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Digital Machine Inspection</h1>
+
+    <div class="form-group">
+        <label for="machine">Maschinen-Typ</label>
+        <select id="machine">
+            <option>Drehmaschine K40</option>
+            <option>Fräsmaschine F2</option>
+            <option>Standbohrmaschine B12</option>
+            <option>Sonderbau / Kundenmaschine</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="serial">Seriennummer / SN</label>
+        <input type="text" id="serial" placeholder="z. B. SN-2026-8812">
+    </div>
+
+    <div class="form-group">
+        <label for="inspector">Prüfer Name</label>
+        <input type="text" id="inspector" placeholder="Dein Name">
+    </div>
+
+    <div class="form-group">
+        <label for="specialState">Sonderzustand / Hinweise (z. B. "Verkauf ohne Motor")</label>
+        <textarea id="specialState" rows="2" placeholder="Besonderheiten bei dieser Abnahme..."></textarea>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 Prüfpunkt suchen..." onkeyup="filterList()">
+    </div>
+
+    <form id="inspectionForm">
+        <div id="dynamicItems"></div>
+        <button type="button" class="btn btn-primary" onclick="evaluateInspection()">Prüfung Auswerten</button>
+    </form>
+
+    <div id="resultBox" class="result">
+        <div id="resultText"></div>
+        <button type="button" class="btn btn-secondary" onclick="window.print()">🖨️ Protokoll Drucken / als PDF</button>
+        <button type="button" class="btn btn-mail" onclick="sendMail()">✉️ Ergebnis per E-Mail senden</button>
+    </div>
+</div>
+
+<script>
+    const checklistItems = [
+        "1. Not-Aus-Schalter auf Funktion prüfen",
+        "2. Schutzabdeckungen vorhanden und intakt",
+        "3. Sichtprüfung auf Öl- oder Flüssigkeitsverlust",
+        "4. Elektrische Leitungen unbeschädigt",
+        "5. Beleuchtung am Arbeitsplatz funktionsfähig",
+        "6. Sauberkeit des Arbeitsbereichs",
+        "7. Druckluftanschlüsse dicht",
+        "8. Füllstand Kühl-/Schmiermittel prüfen",
+        "9. Sicherheitsabstände eingehalten",
+        "10. Werkzeugaufnahme ohne Beschädigung",
+        "11. Geräuschentwicklung im Leerlauf (falls Motor verbaut)",
+        "12. Bremsen / Stopp-Funktion geprüft",
+        "13. Warnschilder gut lesbar",
+        "14. Absauganlage funktionsfähig",
+        "15. Hydraulikdruck im Normbereich",
+        "16. Mechanische Verriegelungen intakt",
+        "17. PSA vorhanden",
+        "18. Protokollbuch aktualisiert"
+    ];
+
+    const dynamicContainer = document.getElementById('dynamicItems');
+
+    checklistItems.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'checklist-item';
+        div.setAttribute('data-text', item.toLowerCase());
+        div.innerHTML = `
+            <h3>${item}</h3>
+            <div class="options">
+                <label><input type="radio" name="item_${index}" value="pass" required> i.O.</label>
+                <label><input type="radio" name="item_${index}" value="fail"> n.i.O.</label>
+                <label><input type="radio" name="item_${index}" value="entfaellt"> Entfällt / Nicht verbaut</label>
+            </div>
+        `;
+        dynamicContainer.appendChild(div);
+    });
+
+    function filterList() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const items = document.querySelectorAll('.checklist-item');
+        items.forEach(item => {
+            const text = item.getAttribute('data-text');
+            item.style.display = text.includes(query) ? 'block' : 'none';
+        });
+    }
+
+    let lastResult = {};
+
+    function evaluateInspection() {
+        const form = document.getElementById('inspectionForm');
+        if(!form.checkValidity()) {
+            alert('Bitte alle Punkte bewerten!');
+            return;
+        }
+
+        const formData = new FormData(form);
+        let hasFail = false;
+
+        for (let value of formData.values()) {
+            if (value === 'fail') {
+                hasFail = true;
+                break;
+            }
+        }
+
+        const resultBox = document.getElementById('resultBox');
+        const resultText = document.getElementById('resultText');
+        resultBox.style.display = 'block';
+
+        const status = hasFail ? 'FAIL' : 'PASS';
+        if(hasFail) {
+            resultBox.className = 'result fail';
+            resultText.innerHTML = '❌ Mängel festgestellt! Maschine NICHT freigegeben.';
+        } else {
+            resultBox.className = 'result pass';
+            resultText.innerHTML = '✅ Prüfung bestanden! Maschine freigegeben.';
+        }
+
+        lastResult = {
+            machine: document.getElementById('machine').value,
+            serial: document.getElementById('serial').value || 'Keine SN',
+            inspector: document.getElementById('inspector').value || 'Unbekannt',
+            special: document.getElementById('specialState').value || 'Keine',
+            status: status,
+            date: new Date().toLocaleString('de-DE')
+        };
+    }
+
+    function sendMail() {
+        const subject = encodeURIComponent(`Abnahme-Protokoll: ${lastResult.machine} - SN: ${lastResult.serial}`);
+        const body = encodeURIComponent(
+            `ABNAHME-PROTOKOLL\n` +
+            `---------------------------\n` +
+            `Maschine: ${lastResult.machine}\n` +
+            `Seriennummer: ${lastResult.serial}\n` +
+            `Prüfer: ${lastResult.inspector}\n` +
+            `Datum: ${lastResult.date}\n` +
+            `Sonderzustand / Hinweise: ${lastResult.special}\n` +
+            `---------------------------\n` +
+            `GESAMTERGEBNIS: ${lastResult.status === 'PASS' ? 'FREIGEGEBEN (OK)' : 'NICHT FREIGEGEBEN (Mängel)'}\n`
+        );
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    }
+</script>
+
+</body>
+</html>
+
