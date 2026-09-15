@@ -173,6 +173,13 @@
             background: #fff;
         }
 
+        .live-note-box {
+            background: #eff6ff;
+            border: 2px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
         .action-buttons {
             display: flex;
             gap: 15px;
@@ -245,10 +252,10 @@
         <button class="btn btn-secondary" onclick="goToScreen('screen-archive')">📜 Archiv / Abgeschlossene Protokolle</button>
     </div>
 
-    <!-- BÜRO LIVE-DASHBOARD (NUR LESEN) -->
+    <!-- BÜRO LIVE-DASHBOARD -->
     <div id="screen-office-live" class="screen">
         <h2>🖥️ Büro Live-Dashboard (Echtzeit-Monitoren)</h2>
-        <p style="font-size: 0.85rem; color: var(--gray);">Hier wird der Live-Fortschritt der Werkstatt automatisch aktualisiert.</p>
+        <p style="font-size: 0.85rem; color: var(--gray);">Hier wird der Live-Fortschritt & Wartezustände der Werkstatt automatisch aktualisiert.</p>
         <div id="office-live-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;"></div>
         <button class="btn btn-secondary" onclick="goToScreen('screen-home')" style="margin-top: 10px;">Zurück zum Hauptmenü</button>
     </div>
@@ -325,9 +332,16 @@
             </div>
         </div>
 
+        <!-- PRÜFPUNKT KARTE -->
         <div class="check-item-card">
             <h3 id="check-step">Prüfpunkt</h3>
             <p id="check-text" style="font-size: 1.2rem; font-weight: bold; margin-top: 10px;">-</p>
+        </div>
+
+        <!-- LIVE-KOMMENTARFELD DIREKT DARUNTER -->
+        <div class="form-group live-note-box">
+            <label for="step-note-text" style="color: #1e40af; font-weight: bold;">💬 Kommentar / Warte-Hinweis für diesen Punkt (Live im Büro):</label>
+            <input type="text" id="step-note-text" placeholder="z. B. 'Warte auf Kran', 'Teil wird geholt', 'Wartet auf Freigabe'..." oninput="saveCurrentNoteLive()">
         </div>
 
         <div id="remark-container" class="form-group" style="display: none;">
@@ -336,12 +350,13 @@
             <button class="btn btn-red" onclick="confirmNOK()">Mangel speichern & Weiter</button>
         </div>
 
+        <!-- OK / NICHT OK BUTTONS -->
         <div class="action-buttons" id="main-actions">
             <button class="btn btn-green" onclick="handleCheck(true)">🟢 OK</button>
             <button class="btn btn-red" onclick="showRemarkInput()">🔴 NICHT OK</button>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <div style="display: flex; gap: 10px; margin-top: 5px;">
             <button class="btn btn-outline" id="btn-prev-step" onclick="prevStep()" style="flex: 1; padding: 10px; font-size: 0.9rem;">↩️ Vorheriger Punkt</button>
             <button class="btn btn-secondary" onclick="pauseInspection()" style="flex: 1; padding: 10px; font-size: 0.9rem;">⏸️ Später weiterprüfen</button>
         </div>
@@ -609,7 +624,8 @@
             selectedItems: selectedItems,
             status: 'OFFEN',
             currentStep: 0,
-            inspectionResults: []
+            inspectionResults: [],
+            liveNote: ''
         };
 
         window.orders.push(newOrder);
@@ -689,7 +705,6 @@
         });
     }
 
-    /* BÜRO LIVE-DASHBOARD (VARIANTE 2: INFOBUSCHEL FÜR MÄNGEL & MIT KOMMENTAREN) */
     function renderOfficeLive() {
         const container = document.getElementById('office-live-list');
         container.innerHTML = '';
@@ -723,7 +738,6 @@
 
             let nokBadge = nokCount > 0 ? `<span class="badge-status badge-red" style="margin-left: 4px;">🔴 ${nokCount} Mangel</span>` : '';
 
-            // VARIANTE 2: Detaillierte Box mit den Kommentaren der Monteure für das Büro
             let nokDetailsHtml = '';
             if (nokCount > 0) {
                 nokDetailsHtml = `
@@ -736,6 +750,17 @@
                 `;
             }
 
+            let currentPointName = (o.selectedItems && o.selectedItems[current]) ? o.selectedItems[current] : 'Unbekannt';
+            let liveStatusHtml = '';
+            if (current < total) {
+                liveStatusHtml = `
+                    <div style="margin-top: 8px; padding: 8px 10px; background-color: #eff6ff; border-left: 4px solid var(--primary); border-radius: 4px; font-size: 0.85rem;">
+                        <b>📍 Aktueller Prüfpunkt:</b> ${currentPointName}<br>
+                        ${o.liveNote ? `<span style="color: #1d4ed8; font-weight: bold; font-size: 0.9rem;">💬 Monteur-Kommentar: "${o.liveNote}"</span>` : `<span style="color: var(--gray); font-style: italic;">(Kein Live-Kommentar eingetragen)</span>`}
+                    </div>
+                `;
+            }
+
             div.innerHTML = `
                 <div style="flex: 1;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
@@ -744,7 +769,7 @@
                     </div>
                     <strong>${o.type}</strong> (SN: ${o.serial})<br>
                     <small>Rohr: ${o.pipe} | Achse: ${o.axis} | Motor: ${o.kw}</small>
-                    ${o.comment ? `<br><small style="color: var(--primary); font-style: italic;">💬 ${o.comment}</small>` : ''}
+                    ${o.comment ? `<br><small style="color: var(--primary); font-style: italic;">💬 Auftrags-Hinweis: ${o.comment}</small>` : ''}
                     
                     <div style="margin-top: 8px;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; color: var(--gray);">
@@ -756,6 +781,7 @@
                         </div>
                     </div>
 
+                    ${liveStatusHtml}
                     ${nokDetailsHtml}
                 </div>
             `;
@@ -822,22 +848,36 @@
             document.getElementById('remark-container').style.display = 'none';
             document.getElementById('main-actions').style.display = 'flex';
             document.getElementById('remark-text').value = '';
+
+            const existingResult = inspectionResults[currentStep];
+            document.getElementById('step-note-text').value = (existingResult && existingResult.note) ? existingResult.note : (currentOrder.liveNote || '');
         } else {
             finishInspection();
         }
+    }
+
+    function saveCurrentNoteLive() {
+        if (!currentOrder) return;
+        const note = document.getElementById('step-note-text').value;
+        currentOrder.liveNote = note;
+        updateSingleOrderInFirebase(currentOrder);
     }
 
     function handleCheck(isOk) {
         const total = activeChecklist.length;
         if (currentStep >= total) return;
 
+        const note = document.getElementById('step-note-text').value.trim();
+
         if (isOk) {
             inspectionResults[currentStep] = { 
                 item: activeChecklist[currentStep], 
                 status: 'OK', 
-                remark: '' 
+                remark: '',
+                note: note
             };
             currentStep++;
+            currentOrder.liveNote = ''; 
             updateStepView();
         }
     }
@@ -852,6 +892,8 @@
         if (currentStep >= total) return;
 
         const remark = document.getElementById('remark-text').value.trim();
+        const note = document.getElementById('step-note-text').value.trim();
+
         if (!remark) { 
             alert("Bitte Mangel beschreiben."); 
             return; 
@@ -860,9 +902,11 @@
         inspectionResults[currentStep] = { 
             item: activeChecklist[currentStep], 
             status: 'NOK', 
-            remark: remark 
+            remark: remark,
+            note: note
         };
         currentStep++;
+        currentOrder.liveNote = ''; 
         updateStepView();
     }
 
@@ -941,6 +985,7 @@
 
             itemDiv.innerHTML = `
                 <div><strong>${idx + 1}. ${r.item}</strong> - <span>${statusText}</span></div>
+                ${r.note ? `<small style="color: var(--primary); margin-top: 2px;">💬 Kommentar: ${r.note}</small>` : ''}
                 ${r.remark ? `<small style="color: var(--red); margin-top: 3px;">⚠️ Mangel: ${r.remark}</small>` : ''}
                 ${r.fixNote ? `<small style="color: var(--green); margin-top: 3px;">✅ Nachbesserung: ${r.fixNote}</small>` : ''}
                 ${r.status === 'NOK' ? `<button class="btn-fix" onclick="fixItemCurrent(${idx})">🛠️ Mangel beheben & freigeben</button>` : ''}
@@ -1137,6 +1182,7 @@
 
             itemDiv.innerHTML = `
                 <div><strong>${idx + 1}. ${r.item}</strong> - <span>${statusText}</span></div>
+                ${r.note ? `<small style="color: var(--primary); margin-top: 2px;">💬 Kommentar: ${r.note}</small>` : ''}
                 ${r.remark ? `<small style="color: var(--red); margin-top: 3px;">⚠️ Mangel: ${r.remark}</small>` : ''}
                 ${r.fixNote ? `<small style="color: var(--green); margin-top: 3px;">✅ Nachbesserung: ${r.fixNote}</small>` : ''}
                 ${r.status === 'NOK' ? `<button class="btn-fix" onclick="fixItemArchive(${idx})">🛠️ Mangel beheben & freigeben</button>` : ''}
@@ -1210,6 +1256,7 @@
         results.forEach((r, i) => {
             if (!r) return;
             let line = `${i+1}. ${r.item}: ${r.status}`;
+            if (r.note) line += ` (Hinweis: ${r.note})`;
             if (r.remark) line += ` (Mangel: ${r.remark})`;
             if (r.fixNote) line += ` [Nachbesserung: ${r.fixNote}]`;
             body += line + `\n`;
