@@ -1267,3 +1267,43 @@
 </script>
 </body>
 </html>
+
+<script>
+    
+    const itemTranslations = {
+        "Zwischenlager montiert": "Paliers intermédiaires montés",
+        "Zwischenlager geprüft": "Paliers intermédiaires contrôlés",
+        "Flanschlager festgezogen": "Roulement à bride serré",
+        "Madenschrauben an Flanschlager festgezogen": "Vis sans tête du roulement à bride serrées",
+        "Gleitlagerkopf angezogen": "Tête de palier lisse serrée",
+        "Schmierleitung festgezogen": "Conduit de graissage serré",
+        "Öl eingesetzt / aufgefüllt": "Huile ajoutée / remplie",
+        "Ring montiert": "Anneau monté",
+        "Flügel montiert": "Pales montées",
+        "Flügel mit Kiloschlüssel festgezogen": "Pales serrées à la clé dynamométrique",
+        "Ring exakt ausgerichtet": "Anneau aligné avec précision",
+        "Gummis montiert": "Joints en caoutchouc montés",
+        "Motorkiste montiert & festgezogen": "Caisson moteur monté et serré",
+        "Motor montiert & festgezogen": "Moteur monté et serré",
+        "Keilriemen auf Spannung & Sitz geprüft": "Tension et assise de la courroie contrôlées",
+        "Riemenscheiben festgezogen": "Poulies serrées",
+        "Schaltkasten auf Funktion getestet": "Boîtier de commande testé",
+        "Kabel & Anschlüsse geprüft": "Câbles et raccordements contrôlés",
+        "Maschinen-Testlauf durchgeführt": "Test de fonctionnement de la machine effectué",
+        "Hauben montiert & festgezogen": "Capots montés et serrés",
+        "Spanner verpackt / beigelegt": "Tendeur emballé / joint",
+        "Deckelsatz-System verpackt": "Jeu de couvercles emballé",
+        "Schrauben für Deckelsatz beigelegt": "Vis pour le jeu de couvercles jointes",
+        "Typenschild geklebt": "Plaque signalétique collée",
+        "Optische Sauberkeit der Maschine geprüft": "Propreté visuelle de la machine contrôlée",
+        "Alle erforderlichen Aufkleber vorhanden & korrekt angebracht": "Toutes les étiquettes présentes et correctement posées",
+        "Maschine komplett eingepackt inkl. Flügel": "Machine entièrement emballée avec pales"
+    };
+
+    function translateCheckItem(itemText) {
+        if (currentLang === 'fr' && itemTranslations[itemText]) {
+            return itemTranslations[itemText];
+        }
+        return itemText;
+    }
+
