@@ -844,7 +844,7 @@
 
         if (currentStep < total) {
             document.getElementById('check-step').innerText = `Prüfpunkt ${currentStep + 1} von ${total}`;
-            document.getElementById('check-text').innerText = activeChecklist[currentStep];
+            document.getElementById('check-text').innerText = translateCheckItem(activeChecklist[currentStep]; 
             document.getElementById('remark-container').style.display = 'none';
             document.getElementById('main-actions').style.display = 'flex';
             document.getElementById('remark-text').value = '';
